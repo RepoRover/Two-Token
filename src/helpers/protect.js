@@ -23,10 +23,16 @@ const protect = catchAsync(async (req, res, next) => {
     }
     userId = decoded.user_id;
   });
+
   let user;
+
   if (userId) {
     user = await findUser({ user_id: userId });
   } else {
+    return next(new APIError("No user id included in provided token.", 401));
+  }
+
+  if (!user) {
     return next(new APIError("No user found with given id.", 403));
   }
 

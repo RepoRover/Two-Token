@@ -27,7 +27,7 @@ export const login = catchAsync(async (req, res, next) => {
   const isMatch = await bcryptjs.compare(password, userDoc.password);
 
   if (isMatch === false) {
-    return next(new APIError("Invalid credentioals.", 401));
+    return next(new APIError("Invalid credentioals.", 403));
   }
 
   const { accessToken, refreshToken } = signTokens(userDoc.user_id);
@@ -72,9 +72,18 @@ export const signup = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", access_token: accessToken });
 });
 
-export const logout = catchAsync(async (req, res, next) => {
+export const logoutAll = catchAsync(async (req, res, next) => {
   const userId = req.user.user_id;
-  updateUser({ user_id: userId }, { refresh_token: null });
+
+  const updatedUser = await updateUser(
+    { user_id: userId },
+    { refresh_token: null }
+  );
+
+  if (!updatedUser) {
+    return next(new APIError("Could not log you out.", 500));
+  }
+
   res.status(200).json({ status: "success", message: "You logged out." });
 });
 

@@ -1,6 +1,6 @@
 import User from "../models/userModel";
 import catchAsync from "../helpers/catchAsync";
-import AppError from "../helpers/AppError";
+import APIError from "../helpers/APIError";
 import bcryptjs from "bcryptjs";
 import signTokens from "../helpers/signTokens";
 import updateUser from "../helpers/user_helpers/updateUser";
@@ -10,7 +10,7 @@ import { v4 } from "uuid";
 export const checkUserNameAndPwd = (req, res, next) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    return next(new AppError("No username or password provided.", 400));
+    return next(new APIError("No username or password provided.", 400));
   }
   next();
 };
@@ -21,20 +21,27 @@ export const login = catchAsync(async (req, res, next) => {
   const userDoc = await findUser({ username });
 
   if (!userDoc) {
-    return next(new AppError("User not found.", 404));
+    return next(new APIError("User not found.", 404));
   }
 
   const isMatch = await bcryptjs.compare(password, userDoc.password);
 
   if (isMatch === false) {
-    return next(new AppError("Invalid credentioals.", 401));
+    return next(new APIError("Invalid credentioals.", 401));
   }
 
   const { accessToken, refreshToken } = signTokens(userDoc.user_id);
+
   const updatedUser = await updateUser(
     { user_id: userDoc.user_id },
     { refresh_token: refreshToken }
   );
+
+  if (!updatedUser) {
+    return next(
+      new APIError("An error occurred while creating your account.", 500)
+    );
+  }
 
   res.status(200).json({ status: "success", access_token: accessToken });
 });
@@ -43,10 +50,10 @@ export const signup = catchAsync(async (req, res, next) => {
   const { username, password, password_confirm } = req.body;
 
   if (!password_confirm) {
-    return next(new AppError("Please confirm your password.", 400));
+    return next(new APIError("Please confirm your password.", 400));
   }
   if (password !== password_confirm) {
-    return next(new AppError("Please check if your passwords match.", 400));
+    return next(new APIError("Please check if your passwords match.", 400));
   }
 
   const hashedPwd = await bcryptjs.hash(password, 10);
@@ -65,4 +72,10 @@ export const signup = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", access_token: accessToken });
 });
 
-// token = req.headers.authorization.split(' ')[1];
+export const logout = catchAsync(async (req, res, next) => {
+  const userId = req.user.user_id;
+  updateUser({ user_id: userId }, { refresh_token: null });
+  res.status(200).json({ status: "success", message: "You logged out." });
+});
+
+export const refresh = catchAsync(async (req, res, next) => {});

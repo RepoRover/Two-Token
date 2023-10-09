@@ -3,11 +3,16 @@ import {
   login,
   signup,
   checkUserNameAndPwd,
+  logout,
+  refresh,
 } from "./../controllers/authControllers";
+import protect from "../helpers/protect";
 
 const router = Router();
 
 router.route("/login").post(checkUserNameAndPwd, login);
 router.route("/signup").post(checkUserNameAndPwd, signup);
+router.route("/logout").post(protect, logout);
+router.route("/refresh").post(protect, refresh);
 
 export default router;

@@ -5,6 +5,7 @@ import morgan from "morgan";
 import authRoutes from "./routes/authRoutes";
 
 import globalErrorHandler from "./controllers/errorController";
+import APIError from "./helpers/APIError";
 
 const app = express();
 
@@ -16,7 +17,7 @@ if (process.env.ENV === "dev") app.use(morgan("dev"));
 app.use(`/api/${process.env.API_VERSION}`, authRoutes);
 
 app.all("*", (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(new APIError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(globalErrorHandler);

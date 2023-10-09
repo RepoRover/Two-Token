@@ -25,7 +25,7 @@ This project is a simple authentication server built with Express.js. It provide
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/your-username/your-repository.git
+   git clone https://github.com/RepoRover/Two-Token.git
    ```
 2. **Install dependencies**
 

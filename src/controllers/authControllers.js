@@ -78,4 +78,19 @@ export const logout = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", message: "You logged out." });
 });
 
-export const refresh = catchAsync(async (req, res, next) => {});
+export const refresh = catchAsync(async (req, res, next) => {
+  const { user_id } = req.user;
+
+  const { accessToken, refreshToken } = signTokens(user_id);
+
+  const updatedUser = await updateUser(
+    { user_id: user_id },
+    { refresh_token: refreshToken }
+  );
+
+  if (!updatedUser) {
+    return next(new APIError("Could not refresh tokens.", 500));
+  }
+
+  res.status(200).json({ status: "success", access_token: accessToken });
+});

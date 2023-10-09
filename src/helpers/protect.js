@@ -22,13 +22,12 @@ const protect = catchAsync(async (req, res, next) => {
       return next(new APIError("Invalid token.", 403));
     }
     userId = decoded.user_id;
-    console.log(decoded.rndm);
   });
-
-  const user = await findUser({ user_id: userId });
-
-  if (!user) {
-    return next(new APIError("No user found with issued id.", 403));
+  let user;
+  if (userId) {
+    user = await findUser({ user_id: userId });
+  } else {
+    return next(new APIError("No user found with given id.", 403));
   }
 
   jwt.verify(
@@ -36,9 +35,8 @@ const protect = catchAsync(async (req, res, next) => {
     process.env.REFRESH_TOKEN_SECRET,
     (err, decoded) => {
       if (err) {
-        return next(new APIError("Invalid token.", 403));
+        return next(new APIError("Invalid token (refresh).", 403));
       }
-      console.log(decoded.rndm);
     }
   );
   req.user = user;

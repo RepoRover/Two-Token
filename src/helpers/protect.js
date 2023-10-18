@@ -16,13 +16,13 @@ const protect = catchAsync(async (req, res, next) => {
     return next(new APIError("No token provided.", 403));
   }
 
-  let userId;
-  jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if (err) {
-      return next(new APIError("Invalid token.", 403));
-    }
-    userId = decoded.user_id;
-  });
+  const payload = jwt.decode(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+  if (!payload.user_id) {
+    return next(new APIError("Invalid token.", 403));
+  }
+
+  const userId = payload.user_id;
 
   let user;
 
